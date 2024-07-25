@@ -65,15 +65,25 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
 
-.home {
-  @apply flex min-h-screen flex-col items-center justify-between p-24;
+.scroll-button {
+  @apply w-full;
+  @apply sticky;
+  @apply bottom-5;
+  @apply pl-4;
 
-  &-header {
-   @apply z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex;
+  button {
+    @apply p-2;
+    @apply text-white;
+    @apply bg-black;
+    @apply rounded-full;
+    @apply absolute;
+    @apply right-5;
+    @apply bottom-0;
   }
 }
