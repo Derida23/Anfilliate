@@ -1,112 +1,209 @@
-import Image from "next/image";
+"use client"
+import { useEffect, useState } from "react";
+import { products } from "@/libs/constants";
+import { Badge } from "@/components/ui/badge";
+import { ChevronUp, ListRestart, SearchIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+
+const options =
+  [
+    { value: 'all', label: 'All' },
+    { value: '001-005', label: '1-5' },
+    { value: '006-010', label: '6-10' },
+    { value: '011-015', label: '11-15' },
+    { value: '016-020', label: '16-20' },
+    // Add more ranges as needed
+  ];
+
+
+const categories = [
+  { value: "shoes", label: "Sepatu" },
+  { value: "jacket", label: "Jaket" },
+  { value: "pants", label: "Celana" },
+  { value: "shirt", label: "Baju" },
+]
+
+const site = {
+  name: 'Anfilliate',
+  description: 'Unlock Exclusive Deals with Our Product Affiliate Program',
+}
+
+function useDebounce(value: string, delay = 300) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 
 export default function Home() {
+
+  const handleError = (e: any) => {
+    e.target.src = '/images/shoes.webp';
+  };
+
+
+  function toMoney(amount: number) {
+    return new Intl.NumberFormat('en-US', {
+    }).format(amount)
+  }
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedRange, setSelectedRange] = useState('all');
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  const isInRange = (productNo: string) => {
+    if (selectedRange === 'all') return true;
+
+    const [start, end] = selectedRange.split('-').map(Number);
+    const productNumber = Number(productNo);
+
+    return productNumber >= start && productNumber <= end;
+  };
+
+  const filteredProducts = products
+    .filter(product =>
+      (selectedCategory === '' || product.category === selectedCategory) &&
+      product.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())  &&
+      isInRange(product.no)
+    );
+
+
+  const [isSticky, setIsSticky] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsSticky(scrollTop > 180);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth', // Optional for smooth scrolling
+    });
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main className="max-w-xl mx-auto relative">
+      <section id="header">
+        <div className="relative">
+          <div className="absolute left-0 bottom-16">
+            <div>
+              <div className="text-white w-fit bg-slate-800/50 pl-3 pr-5 py-2 font-medium text-2xl flex items-end gap-x-1">
+                <img src="/images/shoes.webp" alt="shoes" className="w-10" />
+                <p className="mb-[1px]">
+                  {site.name}
+                </p>
+              </div>
+              <p className="text-white text-xs pl-2 italic pt-2">{site.description}</p>
+            </div>
+
+          </div>
+          <img src="/images/hero.webp" alt="logo" className=" h-48 w-full object-cover object-bottom" />
+        </div>
+      </section>
+
+      <div
+        className={`sticky top-0 z-10 grid grid-cols-3 px-2 gap-x-2 mt-[-20px] transition-all duration-300 ${isSticky ? 'bg-white shadow-md py-2' : ''}`}
+      >
+        <div className="relative col-span-2">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <SearchIcon className="h-5 w-5 text-gray-500" />
+          </div>
+          <Input
+            type="text"
+            className="pl-10"
+            placeholder="Cari produk"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="relative grid grid-cols-4 gap-x-1">
+          <div className="col-span-3">
+            <Select onValueChange={setSelectedRange} value={selectedRange}>
+              <SelectTrigger className="w-full h-full bg-white">
+                <SelectValue placeholder="Nomor" />
+              </SelectTrigger>
+              <SelectContent>
+                {options.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div onClick={() => { setSearchTerm(''), setSelectedCategory(''), setSelectedRange('all') }} className="cursor-pointer hover:bg-gray-50 bg-white rounded-sm h-full flex items-center justify-center border-[1px] border-gray-100">
+            <ListRestart />
+          </div>
         </div>
       </div>
 
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+      <section id="category" className="flex items-center justify-center gap-x-2 lg:gap-x-5 mt-4 mx-auto max-w-xl">
+        {
+          categories.map((category) => (
+            <div onClick={() => setSelectedCategory(category.value)} key={category.value} className={`w-24 h-24 lg:w-28 lg:h-28 shadow-xl rounded-lg border border-gray-100 cursor-pointer hover:shadow-2xl ${selectedCategory === category.value ? 'bg-orange-50' : 'bg-white'}`}>
+              <div className="flex items-center justify-center">
+                <img src={`/images/category/${category.value}.webp`} alt={category.value} className="w-20 h-20 " />
+              </div>
+              <p className="text-xs text-center -mt-1 font-semibold mb-1">{category.label}</p>
+            </div>
+          ))
+        }
+      </section>
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+      <section id="product" className="mt-5 p-2 bg-stone-100 rounded-lg">
+        {filteredProducts.length === 0 ? (
+          <div className="text-center py-10 h-96">
+            <img src="/images/empty.webp" alt="empty" className="w-52 h-52 mx-auto" />
+            <p className="text-gray-500 text-xl font-semibold mt-10">Produk tidak ditemukan</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-x-2 gap-y-4">
+            {filteredProducts.map((item) => (
+              <div key={item.no} className="relative border rounded-lg bg-white p-2">
+                <div className="absolute top-3 left-3">
+                  <Badge>{item.no}</Badge>
+                </div>
+                <div className="flex justify-center min-w-32 min-h-32">
+                  <img src={item.image}
+                    onError={handleError} alt="logo" className="w-full rounded-t-lg object-cover" />
+                </div>
+                <div className="w-full pt-2">
+                  <p className="font-semibold text-sm max-h-20 line-clamp-2">{item.name}</p>
+                  <p className="text-orange-400 font-semibold mt-1">Rp. {toMoney(item.price)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+      <div className='scroll-button'>
+        <button onClick={scrollToTop} >
+          <ChevronUp />
+        </button>
       </div>
     </main>
   );
