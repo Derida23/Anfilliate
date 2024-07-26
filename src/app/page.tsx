@@ -77,7 +77,7 @@ export default function Home() {
   const filteredProducts = products
     .filter(product =>
       (selectedCategory === '' || product.category === selectedCategory) &&
-      product.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())  &&
+      product.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) &&
       isInRange(product.no)
     );
 
@@ -105,31 +105,32 @@ export default function Home() {
   };
 
   return (
-    <main className="max-w-xl mx-auto relative">
+    <main className="landing">
       <section id="header">
         <div className="relative">
-          <div className="absolute left-0 bottom-16">
-            <div>
-              <div className="text-white w-fit bg-slate-800/50 pl-3 pr-5 py-2 font-medium text-2xl flex items-end gap-x-1">
+          <div className="landing-company">
+            <section>
+              <div className="landing-company-hero">
                 <img src="/images/shoes.webp" alt="shoes" className="w-10" />
                 <p className="mb-[1px]">
                   {site.name}
                 </p>
               </div>
-              <p className="text-white text-xs pl-2 italic pt-2">{site.description}</p>
-            </div>
+              <p className="landing-company-description">{site.description}</p>
+            </section>
 
           </div>
-          <img src="/images/hero.webp" alt="logo" className=" h-48 w-full object-cover object-bottom" />
+          <img src="/images/hero.webp" alt="logo" className="landing-company-background" />
         </div>
       </section>
 
-      <div
-        className={`sticky top-0 z-10 grid grid-cols-3 px-2 gap-x-2 mt-[-20px] transition-all duration-300 ${isSticky ? 'bg-white shadow-md py-2' : ''}`}
+      <section
+        id="filter"
+        className={`landing-filter ${isSticky ? 'landing-filter-sticky' : ''}`}
       >
-        <div className="relative col-span-2">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <SearchIcon className="h-5 w-5 text-gray-500" />
+        <div className="landing-filter-search">
+          <div className="search">
+            <SearchIcon className="search-icon" />
           </div>
           <Input
             type="text"
@@ -139,10 +140,10 @@ export default function Home() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="relative grid grid-cols-4 gap-x-1">
-          <div className="col-span-3">
+        <div className="landing-filter-select">
+          <div className="select">
             <Select onValueChange={setSelectedRange} value={selectedRange}>
-              <SelectTrigger className="w-full h-full bg-white">
+              <SelectTrigger className="select-label">
                 <SelectValue placeholder="Nomor" />
               </SelectTrigger>
               <SelectContent>
@@ -154,45 +155,47 @@ export default function Home() {
               </SelectContent>
             </Select>
           </div>
-          <div onClick={() => { setSearchTerm(''), setSelectedCategory(''), setSelectedRange('all') }} className="cursor-pointer hover:bg-gray-50 bg-white rounded-sm h-full flex items-center justify-center border-[1px] border-gray-100">
+          <div
+            onClick={() => { setSearchTerm(''), setSelectedCategory(''), setSelectedRange('all') }}
+            className="reset">
             <ListRestart />
           </div>
         </div>
-      </div>
+      </section>
 
-      <section id="category" className="flex items-center justify-center gap-x-2 lg:gap-x-5 mt-4 mx-auto max-w-xl">
+      <section id="category" className="landing-category">
         {
           categories.map((category) => (
-            <div onClick={() => setSelectedCategory(category.value)} key={category.value} className={`w-24 h-24 lg:w-28 lg:h-28 shadow-xl rounded-lg border border-gray-100 cursor-pointer hover:shadow-2xl ${selectedCategory === category.value ? 'bg-orange-50' : 'bg-white'}`}>
-              <div className="flex items-center justify-center">
+            <div onClick={() => setSelectedCategory(category.value)} key={category.value} className={`category ${selectedCategory === category.value ? 'bg-orange-50' : 'bg-white'}`}>
+              <div className="category-image">
                 <img src={`/images/category/${category.value}.webp`} alt={category.value} className="w-20 h-20 " />
               </div>
-              <p className="text-xs text-center -mt-1 font-semibold mb-1">{category.label}</p>
+              <p className="category-title">{category.label}</p>
             </div>
           ))
         }
       </section>
 
-      <section id="product" className="mt-5 p-2 bg-stone-100 rounded-lg">
+      <section id="product" className="landing-product">
         {filteredProducts.length === 0 ? (
-          <div className="text-center py-10 h-96">
-            <img src="/images/empty.webp" alt="empty" className="w-52 h-52 mx-auto" />
-            <p className="text-gray-500 text-xl font-semibold mt-10">Produk tidak ditemukan</p>
+          <div className="landing-product-empty">
+            <img src="/images/empty.webp" alt="empty" className="landing-product-empty-image" />
+            <p className="landing-product-empty-title">Produk tidak ditemukan</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-x-2 gap-y-4">
+          <div className="landing-product-container">
             {filteredProducts.map((item) => (
-              <div key={item.no} className="relative border rounded-lg bg-white p-2">
-                <div className="absolute top-3 left-3">
+              <div key={item.no} className="landing-product-wrapper">
+                <div className="landing-product-badge">
                   <Badge>{item.no}</Badge>
                 </div>
-                <div className="flex justify-center min-w-32 min-h-32">
+                <div className="landing-product-image">
                   <img src={item.image}
-                    onError={handleError} alt="logo" className="w-full rounded-t-lg object-cover" />
+                    onError={handleError} alt="product" className="" />
                 </div>
                 <div className="w-full pt-2">
-                  <p className="font-semibold text-sm max-h-20 line-clamp-2">{item.name}</p>
-                  <p className="text-orange-400 font-semibold mt-1">Rp. {toMoney(item.price)}</p>
+                  <p className="landing-product-name">{item.name}</p>
+                  <p className="landing-product-price">Rp. {toMoney(item.price)}</p>
                 </div>
               </div>
             ))}
